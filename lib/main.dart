@@ -1,40 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  @override
+  
+  @override 
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      home: GoogleMaps(),
+      debugShowCheckedModeBanner: false,
+      home: MyHomePage(),
     );
   }
 }
 
-class GoogleMaps extends StatefulWidget {
-  GoogleMaps({Key? key}) : super(key: key);
-  // (37.42796133580664, -122.085749655962);
+class MyHomePage extends StatefulWidget {
   @override
-  _GoogleMapsState createState() => _GoogleMapsState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _GoogleMapsState extends State<GoogleMaps> {
+class _MyHomePageState extends State<MyHomePage> {
+
+  // ignore: prefer_final_fields
+  LatLng _initialcameraposition = LatLng(20.5937, 78.9629);
   late GoogleMapController _controller;
-  LatLng _latLng = LatLng(37.42796133580664, -122.085749655962);
-  void onMapsCreated(GoogleMapController _cont) {
-    _controller = _cont;
+  // ignore: prefer_final_fields
+  Location _location = Location();
+
+  void _onMapCreated(GoogleMapController _cntlr)
+  {
+    _controller = _cntlr;
+    _location.onLocationChanged.listen((l) { 
+      _controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: LatLng(l.latitude!.toDouble(), l.longitude!.toDouble()),zoom: 17),
+          ),
+      );
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GoogleMap(
-          onMapCreated: onMapsCreated,
-          initialCameraPosition: CameraPosition(target: _latLng, zoom: 12)),
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Stack(
+          children: [
+            GoogleMap(
+              initialCameraPosition: CameraPosition(target: _initialcameraposition),
+              mapType: MapType.normal,
+              onMapCreated: _onMapCreated,
+              myLocationEnabled: true,
+            ),
+          ],
+        ),
+      ),
     );
   }
+
+  
 }
